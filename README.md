@@ -1,17 +1,64 @@
-# firebase_app
+# 🔥 FirebaseApp
 
-A new Flutter project.
+Projeto desenvolvido para a disciplina **Desenvolvimento de Aplicativos II**.
 
-## Getting Started
+## 📌 Sobre o projeto
 
-This project is a starting point for a Flutter application.
+Este é um aplicativo criado com **Flutter**, com o objetivo de praticar o desenvolvimento de aplicativos multiplataforma utilizando o VS Code como ambiente de desenvolvimento.
 
-A few resources to get you started if this is your first Flutter project:
+O projeto foi criado como alternativa ao Firebase Studio, utilizando uma estrutura local com Flutter.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 🚀 Tecnologias utilizadas
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 🐦 Flutter
+- 🎯 Dart
+- 💻 VS Code
+- 🌱 Git
+- 🐙 GitHub
+
+## ▶️ Como executar o projeto
+
+Clone o repositório:
+
+```bash
+git clone https://github.com/Robson-ifes/FirebaseApp.git
+```
+
+Entre na pasta do projeto:
+
+```bash
+cd FirebaseApp
+```
+
+Instale as dependências:
+
+```bash
+flutter pub get
+```
+
+Execute no navegador Chrome:
+
+```bash
+flutter run -d chrome
+```
+
+## 📁 Estrutura inicial
+
+O projeto segue a estrutura padrão de um aplicativo Flutter:
+
+```text
+lib/
+  main.dart
+web/
+android/
+ios/
+pubspec.yaml
+```
+
+## 👨‍💻 Autor
+
+Robson
+
+## 🔗 Repositório
+
+https://github.com/Robson-ifes/FirebaseApp
