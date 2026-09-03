@@ -126,7 +126,7 @@ O projeto foi conectado ao Firebase e preparado para continuar o desenvolvimento
 
 ## 👨‍💻 Autor
 
-Robson
+Robson Silva Ribeiro
 
 ## 🔗 Repositório
 
