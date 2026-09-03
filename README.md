@@ -120,7 +120,7 @@ Essa configuração permite que a mensagem exibida no app seja alterada diretame
 
 ## 👨‍💻 Autor
 
-Robson Ribeiro
+Robson Silva Ribeiro
 
 ## 🔗 Repositório
 
