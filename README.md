@@ -81,7 +81,7 @@ O aplicativo foi executado inicialmente na Web, utilizando o Google Chrome como 
 
 ## 👨‍💻 Autor
 
-Robson
+Robson Silva Ribeiro
 
 ## 🔗 Repositório
 
