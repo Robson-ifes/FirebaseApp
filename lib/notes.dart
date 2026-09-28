@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notifications.dart';
+import 'package:latlong2/latlong.dart' as ll;
+import 'maps.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -36,44 +38,44 @@ class _NotesPageState extends State<NotesPage> {
   }
 
   Future<void> _add() async {
-  final text = createController.text.trim();
+    final text = createController.text.trim();
 
-  if (text.isEmpty) {
-    setState(() => message = 'Preencha a descrição.');
-    return;
-  }
+    if (text.isEmpty) {
+      setState(() => message = 'Preencha a descrição.');
+      return;
+    }
 
-  setState(() {
-    loading = true;
-    message = null;
-  });
-
-  try {
-    final note = await _col.add({
-      'description': text,
-      'createdAt': FieldValue.serverTimestamp(),
+    setState(() {
+      loading = true;
+      message = null;
     });
 
-    await Notifications.show(
-      id: note.id.hashCode,
-      title: 'Nota criada',
-      body: text,
-      payload: note.id,
-    );
+    try {
+      final note = await _col.add({
+        'description': text,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
-    if (mounted) {
-      createController.clear();
-    }
-  } catch (e) {
-    if (mounted) {
-      setState(() => message = 'Erro: $e');
-    }
-  } finally {
-    if (mounted) {
-      setState(() => loading = false);
+      await Notifications.show(
+        id: note.id.hashCode,
+        title: 'Nota criada',
+        body: text,
+        payload: note.id,
+      );
+
+      if (mounted) {
+        createController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => message = 'Erro: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
     }
   }
-}
 
   void _startInlineEdit(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
@@ -142,12 +144,38 @@ class _NotesPageState extends State<NotesPage> {
     }
   }
 
+  void _openMapViewer(
+    DocumentReference<Map<String, dynamic>> noteRef,
+    Map<String, dynamic> data,
+  ) {
+    GeoPoint? gp;
+    final pos = data['position'];
+
+    if (pos is GeoPoint) {
+      gp = pos;
+    } else if (pos is Map && pos['geopoint'] is GeoPoint) {
+      gp = pos['geopoint'] as GeoPoint;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MapViewerEditorPage(
+          noteRef: noteRef,
+          initialLatLng: gp == null
+              ? null
+              : ll.LatLng(gp.latitude, gp.longitude),
+          initialZoom: (data['zoom'] as num?)?.toDouble(),
+          initialAddress: data['address']?.toString(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notas'),
-      ),
+      appBar: AppBar(title: const Text('Notas')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
@@ -159,9 +187,7 @@ class _NotesPageState extends State<NotesPage> {
                   children: [
                     TextField(
                       controller: createController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descrição',
-                      ),
+                      decoration: const InputDecoration(labelText: 'Descrição'),
                       onSubmitted: (_) => _add(),
                     ),
                     const SizedBox(height: 16),
@@ -195,15 +221,11 @@ class _NotesPageState extends State<NotesPage> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     if (snapshot.hasError) {
-                      return Center(
-                        child: Text('Erro: ${snapshot.error}'),
-                      );
+                      return Center(child: Text('Erro: ${snapshot.error}'));
                     }
 
                     final docs = snapshot.data?.docs ?? [];
@@ -260,13 +282,33 @@ class _NotesPageState extends State<NotesPage> {
                           );
                         }
 
+                        final address = (data['address'] ?? '').toString();
+
                         return ListTile(
                           title: Text((data['description'] ?? '').toString()),
+                          subtitle: address.isEmpty
+                              ? null
+                              : Text(
+                                  address,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                           onTap: () => _startInlineEdit(doc),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            tooltip: 'Remover',
-                            onPressed: () => _remove(doc.id),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.map_rounded),
+                                tooltip: 'Mapa',
+                                onPressed: () =>
+                                    _openMapViewer(_col.doc(doc.id), data),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Remover',
+                                onPressed: () => _remove(doc.id),
+                              ),
+                            ],
                           ),
                         );
                       },
