@@ -128,19 +128,19 @@ windows/flutter/generated_plugins.cmake
 
 ### Tela de anotações no Pixel 7
 
-![Tela de anotações no Pixel 7](semana7/01-notas-pixel7.png)
+![Tela de anotações no Pixel 7](imagens/semana7/01-notas-pixel7.png)
 
 ### Mapa com marcador
 
-![Mapa com marcador](semana7/02-mapa-com-marcador.png)
+![Mapa com marcador](imagens/semana7/02-mapa-com-marcador.png)
 
 ### Tela inicial de geolocalização
 
-![Tela inicial de geolocalização](semana7/03-mapa-inicial.png)
+![Tela inicial de geolocalização](imagens/semana7/03-mapa-inicial.png)
 
 ### Endereço salvo na anotação
 
-![Endereço salvo na anotação](semana7/04-endereco-salvo.png)
+![Endereço salvo na anotação](imagens/semana7/04-endereco-salvo.png)
 
 ## 🧪 Resultado obtido
 
