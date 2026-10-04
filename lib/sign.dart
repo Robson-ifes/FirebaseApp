@@ -34,12 +34,14 @@ class _SignPageState extends State<SignPage> {
       setState(() => message = 'Preencha e-mail, senha e confirmação.');
       return;
     }
-
+    if (!_isValidEmail(email)) {
+      setState(() => message = 'E-mail inválido.');
+      return;
+    }
     if (password.length < 6) {
       setState(() => message = 'A senha deve ter pelo menos 6 caracteres.');
       return;
     }
-
     if (password != confirm) {
       setState(() => message = 'As senhas não coincidem.');
       return;
@@ -55,24 +57,41 @@ class _SignPageState extends State<SignPage> {
         email: email,
         password: password,
       );
-
       await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-
       if (!mounted) return;
       Navigator.pop(context);
     } on FirebaseAuthException catch (exception) {
-      setState(() => message = 'Falha ao criar conta: ${exception.code}');
+      if (!mounted) return;
+      setState(() => message = _mapCode(exception));
+    } catch (exception) {
+      if (!mounted) return;
+      setState(() => message = 'Erro: $exception');
     } finally {
       if (mounted) setState(() => loading = false);
+    }
+  }
+
+  bool _isValidEmail(String v) => RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v);
+
+  String _mapCode(FirebaseAuthException exception) {
+    switch (exception.code) {
+      case 'email-already-in-use':
+        return 'Este e-mail já está em uso.';
+      case 'invalid-email':
+        return 'E-mail inválido.';
+      case 'operation-not-allowed':
+        return 'Método de login desabilitado no Firebase.';
+      case 'weak-password':
+        return 'Senha muito fraca (use 6+ caracteres).';
+      default:
+        return 'Falha ao criar conta (${exception.code}).';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Criar conta'),
-      ),
+      appBar: AppBar(title: const Text('Criar conta')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
@@ -95,9 +114,7 @@ class _SignPageState extends State<SignPage> {
                       icon: Icon(
                         obscure ? Icons.visibility : Icons.visibility_off,
                       ),
-                      onPressed: () {
-                        setState(() => obscure = !obscure);
-                      },
+                      onPressed: () => setState(() => obscure = !obscure),
                     ),
                   ),
                 ),
@@ -117,6 +134,14 @@ class _SignPageState extends State<SignPage> {
                     child: const Text('Criar conta'),
                   ),
                 ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: loading ? null : () => Navigator.pop(context),
+                    child: const Text('Voltar'),
+                  ),
+                ),
                 if (loading)
                   const Padding(
                     padding: EdgeInsets.only(top: 16),
@@ -128,6 +153,9 @@ class _SignPageState extends State<SignPage> {
                     child: Text(
                       message!,
                       textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
               ],

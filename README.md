@@ -1,32 +1,28 @@
-# 🔥 FirebaseApp - Semana 7
+# 🔥 FirebaseApp - Semana 8
 
 Atividade desenvolvida para a disciplina **Desenvolvimento de Aplicativos II**.
 
 ## 📌 Objetivo da semana
 
-Nesta sétima semana, o objetivo foi adicionar recursos de geolocalização ao aplicativo Flutter.
+Nesta oitava semana, o objetivo foi gerar rotas entre dois pontos selecionados no mapa, utilizando o OpenRouteService.
 
-O aplicativo passou a permitir que o usuário selecione uma localização no mapa, consulte o endereço correspondente e salve essa informação junto com a anotação no Cloud Firestore.
+O aplicativo passou a permitir a seleção de um ponto inicial e de um ponto final, o cálculo da rota entre eles e o salvamento da distância, da duração e da linha da rota junto com a anotação no Cloud Firestore.
 
 ## ✅ O que foi realizado
 
-- Criação da branch **semana7**
-- Instalação do pacote **flutter_map**
-- Instalação do pacote **latlong2**
-- Instalação do pacote **http**
-- Instalação do pacote **geoflutterfire_plus**
-- Criação do arquivo **lib/maps.dart**
-- Criação da tela de geolocalização
-- Exibição do mapa utilizando OpenStreetMap
-- Inclusão de marcador para selecionar uma localização
-- Utilização do gesto de toque e movimento no mapa
-- Consulta de endereço por geocodificação reversa
-- Exibição do endereço selecionado na tela
-- Salvamento da localização e do endereço junto com a anotação
-- Exibição do endereço salvo na lista de anotações
-- Inclusão de um botão de mapa para consultar a localização de cada anotação
+- Criação da branch **semana8**
+- Configuração de uma chave do OpenRouteService no Cloud Firestore
+- Alteração da tela de geolocalização para selecionar ponto inicial e ponto final
+- Inclusão de marcadores diferentes para os pontos inicial e final
+- Geração de rotas utilizando o perfil `driving-car`
+- Exibição da linha da rota no mapa
+- Exibição da distância e da duração estimada do percurso
+- Inclusão da opção para inverter os pontos inicial e final
+- Salvamento dos pontos, endereços, rota, distância e duração junto com a anotação
+- Reabertura da anotação com a rota salva corretamente
+- Correção do cadastro conforme o feedback da Semana 7
 - Teste do aplicativo no emulador Pixel 7
-- Publicação da branch **semana7** no GitHub
+- Publicação da branch **semana8** no GitHub
 
 ## 🚀 Tecnologias utilizadas
 
@@ -37,8 +33,9 @@ O aplicativo passou a permitir que o usuário selecione uma localização no map
 - 🗄️ Cloud Firestore
 - 🗺️ Flutter Map
 - 🌍 OpenStreetMap
+- 🧭 OpenRouteService
 - 📍 Geolocalização
-- 🔎 Geocodificação reversa
+- 🔎 Geocodificação reversa com Nominatim
 - 🧩 FlutterFire CLI
 - 💻 Visual Studio Code
 - 🟢 Android Studio
@@ -46,56 +43,50 @@ O aplicativo passou a permitir que o usuário selecione uma localização no map
 - 🐙 GitHub
 - 📱 Android Emulator
 
-## 🗺️ Configuração do mapa
+## 🧭 Configuração das rotas
 
-O mapa foi implementado no arquivo:
+As rotas foram implementadas no arquivo:
 
 ```text
 lib/maps.dart
 ```
 
-Foi utilizado o pacote `flutter_map` com o servidor público de tiles do OpenStreetMap:
+O aplicativo envia as coordenadas dos pontos inicial e final para a API do OpenRouteService utilizando o endpoint:
 
 ```text
-https://tile.openstreetmap.org/{z}/{x}/{y}.png
+https://api.openrouteservice.org/v2/directions/driving-car/geojson
 ```
 
-O usuário pode tocar no mapa para posicionar o marcador. A localização selecionada é armazenada em coordenadas de latitude e longitude.
+As coordenadas são enviadas no formato longitude e latitude. A resposta GeoJSON é convertida em uma linha exibida sobre o mapa.
 
-## 📍 Geocodificação reversa
+## 🔐 Chave do OpenRouteService
 
-Depois que uma localização é selecionada, o aplicativo consulta a API do Nominatim para converter as coordenadas em um endereço legível.
-
-Para identificar corretamente o aplicativo durante a consulta, foi utilizado o seguinte cabeçalho:
+Para não deixar a chave diretamente no código, ela foi cadastrada no Cloud Firestore em:
 
 ```text
-'User-Agent': 'FirebaseApp/1.0 (robinho.ufes@gmail.com)'
+Coleção: config
+Documento: osr
+Campo: key
 ```
 
-O endereço retornado é exibido na tela de geolocalização e pode ser salvo junto com a anotação.
+O aplicativo consulta esse campo antes de solicitar a rota.
 
 ## 🔥 Dados salvos no Firebase
 
-Além da descrição da anotação, foram adicionados campos para armazenar a localização:
+Além da descrição da anotação, foram adicionados dados referentes à rota:
 
 ```text
-latitude
-longitude
-address
+initial
+final
+distanceM
+durationS
+polyline6
+mode
 ```
 
-Quando a anotação possui uma localização salva, a lista de notas exibe o endereço resumido e um botão para abrir novamente o mapa.
+Os pontos inicial e final armazenam suas coordenadas e endereços. A linha codificada da rota permite abrir novamente o mapa sem precisar gerar a rota outra vez.
 
 ## ▶️ Comandos utilizados
-
-Instalação dos pacotes:
-
-```bash
-flutter pub add flutter_map
-flutter pub add latlong2
-flutter pub add http
-flutter pub add geoflutterfire_plus
-```
 
 Execução do aplicativo no emulador Pixel 7:
 
@@ -106,9 +97,9 @@ flutter run --no-enable-impeller -d emulator-5554
 Publicação da branch no GitHub:
 
 ```bash
-git add lib/maps.dart lib/notes.dart pubspec.yaml pubspec.lock linux/flutter/generated_plugins.cmake windows/flutter/generated_plugins.cmake
-git commit -m "Semana 7"
-git push -u origin semana7
+git add README.md imagens/semana8 lib/maps.dart lib/notes.dart lib/sign.dart
+git commit -m "Semana 8"
+git push -u origin semana8
 ```
 
 ## 📁 Arquivos alterados/criados
@@ -118,57 +109,42 @@ Durante a atividade, foram utilizados principalmente os arquivos:
 ```text
 lib/maps.dart
 lib/notes.dart
-pubspec.yaml
-pubspec.lock
-linux/flutter/generated_plugins.cmake
-windows/flutter/generated_plugins.cmake
+lib/sign.dart
+README.md
+imagens/semana8/mapa-rota.png
+imagens/semana8/notas-semana8.png
 ```
 
 ## 📸 Evidências da execução
 
-### Tela de anotações no Pixel 7
+### Rota entre dois pontos em Vitória
 
-![Tela de anotações no Pixel 7](imagens/semana7/01-notas-pixel7.png)
+![Rota entre dois pontos em Vitória](imagens/semana8/mapa-rota.png)
 
-### Mapa com marcador
+### Anotação com os endereços salvos
 
-![Mapa com marcador](imagens/semana7/02-mapa-com-marcador.png)
-
-### Tela inicial de geolocalização
-
-![Tela inicial de geolocalização](imagens/semana7/03-mapa-inicial.png)
-
-### Endereço salvo na anotação
-
-![Endereço salvo na anotação](imagens/semana7/04-endereco-salvo.png)
+![Anotação com os endereços salvos](imagens/semana8/notas-semana8.png)
 
 ## 🧪 Resultado obtido
 
 O aplicativo foi executado com sucesso no emulador **Pixel 7**, utilizando Android 15 e API 35.
 
-Após entrar no aplicativo, acessar **Anotações** e criar uma nova anotação, foi possível:
+Após entrar no aplicativo, acessar **Notas** e abrir a tela de geolocalização, foi possível:
 
-- Abrir a tela de geolocalização
-- Navegar pelo mapa
-- Selecionar uma localização
-- Visualizar o marcador no mapa
-- Consultar o endereço correspondente
-- Salvar a anotação com a localização
-- Visualizar o endereço na lista de anotações
-- Abrir novamente o mapa pelo botão da anotação
-
-Exemplo de anotação criada:
-
-```text
-Teste do Teste
-Guaxindiba, Aracruz, Espírito Santo, Região Sudeste, 29190-680, Brasil
-```
+- Selecionar o ponto inicial no mapa
+- Selecionar o ponto final no mapa
+- Consultar os endereços correspondentes
+- Gerar uma rota entre os dois pontos
+- Visualizar a rota sobre o mapa
+- Visualizar a distância de **1,30 km** e a duração estimada de **4 minutos**
+- Salvar a rota junto com a anotação
+- Reabrir a anotação e visualizar novamente a rota salva
 
 ## 💬 Observações
 
-Nesta etapa foram implementados recursos de mapas e localização. O aplicativo utiliza o OpenStreetMap para exibir o mapa e o serviço Nominatim para obter o endereço a partir das coordenadas selecionadas.
+Nesta etapa foram implementados os recursos de geração e persistência de rotas. O aplicativo utiliza o OpenStreetMap para a visualização do mapa, o Nominatim para a consulta dos endereços e o OpenRouteService para calcular o percurso entre os pontos selecionados.
 
-O teste principal foi realizado no Pixel 7, onde o login, o carregamento das anotações, a criação de uma nova anotação e o salvamento dos endereços funcionaram corretamente.
+Também foram realizados os ajustes solicitados no feedback da Semana 7 no arquivo `lib/sign.dart`, incluindo a validação de e-mail, o tratamento dos erros do Firebase Authentication e o botão **Voltar**.
 
 ## 👨‍💻 Autor
 
@@ -181,5 +157,5 @@ Robson Silva Ribeiro
 ## 🌿 Branch da atividade
 
 ```text
-semana7
+semana8
 ```
