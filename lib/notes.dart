@@ -50,7 +50,12 @@ class _NotesPageState extends State<NotesPage> {
     });
     try {
       await _col
-          .add({'description': text, 'createdAt': FieldValue.serverTimestamp()})
+          .add({
+            'description': text,
+            'createdAt': FieldValue.serverTimestamp(),
+            'date': null,
+            'timeMinutes': null,
+          })
           .then(
             (note) => Notifications.show(
               id: note.id.hashCode,
@@ -240,6 +245,102 @@ class _NotesPageState extends State<NotesPage> {
     );
   }
 
+  String formatDate(Timestamp? ts) {
+    if (ts == null) return '--';
+    final d = ts.toDate();
+    return '${d.month.toString().padLeft(2, '0')}/${d.year}';
+  }
+
+  String formatTimeMinutes(int? minutes) {
+    if (minutes == null) return '--';
+    final h = (minutes ~/ 60).toString().padLeft(2, '0');
+    final m = (minutes % 60).toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+
+  Future<void> _pickDate(
+    DocumentReference<Map<String, dynamic>> noteRef,
+    Timestamp? current,
+  ) async {
+    final initial = (current ?? Timestamp.fromDate(DateTime.now())).toDate();
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (selected != null) {
+      try {
+        await noteRef.update({
+          'date': Timestamp.fromDate(selected),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (mounted) setState(() {});
+      } catch (e) {
+        if (mounted) setState(() => message = 'Erro ao salvar data: $e');
+      }
+    }
+  }
+
+  Future<void> _pickTime(
+    DocumentReference<Map<String, dynamic>> noteRef,
+    int? currentMinutes,
+  ) async {
+    final initialHour = (currentMinutes ?? 540) ~/ 60;
+    final initialMinute = (currentMinutes ?? 540) % 60;
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
+    );
+    if (selected != null) {
+      final minutes = selected.hour * 60 + selected.minute;
+      try {
+        await noteRef.update({
+          'timeMinutes': minutes,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (mounted) setState(() {});
+      } catch (e) {
+        if (mounted) setState(() => message = 'Erro ao salvar horário: $e');
+      }
+    }
+  }
+
+  Widget _iconWithLabel({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+    String? tooltip,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    return SizedBox(
+      width: 56,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(icon, size: 20),
+            tooltip: tooltip,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 40, height: 36),
+            visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+            onPressed: onPressed,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label.isEmpty ? '—' : label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.labelSmall?.copyWith(
+              height: 1.0,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String? _routeSubtitle(Map<String, dynamic> data) {
     String? iAddr;
     String? fAddr;
@@ -349,7 +450,7 @@ class _NotesPageState extends State<NotesPage> {
                     }
                     return ListView.separated(
                       itemCount: docs.length,
-                      separatorBuilder: (_, __) => const Divider(height: 0),
+                      separatorBuilder: (_, _) => const Divider(height: 0),
                       itemBuilder: (context, i) {
                         final doc = docs[i];
                         final data = doc.data();
@@ -394,8 +495,13 @@ class _NotesPageState extends State<NotesPage> {
                         }
 
                         final subtitleText = _routeSubtitle(data);
+                        final Timestamp? tsDate = data['date'] as Timestamp?;
+                        final int? timeMinutes = (data['timeMinutes'] as num?)
+                            ?.toInt();
 
                         return ListTile(
+                          isThreeLine: subtitleText != null,
+                          minVerticalPadding: 8,
                           title: Text((data['description'] ?? '').toString()),
                           subtitle: subtitleText == null
                               ? null
@@ -405,21 +511,44 @@ class _NotesPageState extends State<NotesPage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                           onTap: () => _startInlineEdit(doc),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.map_rounded),
-                                tooltip: 'Mapa',
-                                onPressed: () =>
-                                    _openMapViewer(_col.doc(doc.id), data),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Remover',
-                                onPressed: () => _remove(doc.id),
-                              ),
-                            ],
+                          trailing: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _iconWithLabel(
+                                  icon: Icons.map_rounded,
+                                  label: 'Mapa',
+                                  tooltip: 'Abrir mapa',
+                                  onPressed: () =>
+                                      _openMapViewer(_col.doc(doc.id), data),
+                                ),
+                                const SizedBox(width: 4),
+                                _iconWithLabel(
+                                  icon: Icons.event,
+                                  label: formatDate(tsDate),
+                                  tooltip: 'Selecionar data',
+                                  onPressed: () =>
+                                      _pickDate(_col.doc(doc.id), tsDate),
+                                ),
+                                const SizedBox(width: 4),
+                                _iconWithLabel(
+                                  icon: Icons.access_time,
+                                  label: formatTimeMinutes(timeMinutes),
+                                  tooltip: 'Selecionar horário',
+                                  onPressed: () =>
+                                      _pickTime(_col.doc(doc.id), timeMinutes),
+                                ),
+                                const SizedBox(width: 4),
+                                _iconWithLabel(
+                                  icon: Icons.delete_outline,
+                                  label: 'Remover',
+                                  tooltip: 'Remover nota',
+                                  onPressed: () => _remove(doc.id),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
