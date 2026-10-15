@@ -1,161 +1,74 @@
-# 🔥 FirebaseApp - Semana 8
+# 📅 FirebaseApp - Semana 10: Datas e horários
 
-Atividade desenvolvida para a disciplina **Desenvolvimento de Aplicativos II**.
+Aplicativo desenvolvido na disciplina de **Desenvolvimento de Aplicativos II**, do curso de **Tecnologia em Sistemas para Internet**.
 
-## 📌 Objetivo da semana
+## 🎯 Objetivo
 
-Nesta oitava semana, o objetivo foi gerar rotas entre dois pontos selecionados no mapa, utilizando o OpenRouteService.
+Adicionar a seleção de data e horário às anotações, armazenando essas informações no Cloud Firestore e mantendo as funcionalidades anteriores de notas, mapas e rotas.
 
-O aplicativo passou a permitir a seleção de um ponto inicial e de um ponto final, o cálculo da rota entre eles e o salvamento da distância, da duração e da linha da rota junto com a anotação no Cloud Firestore.
+## ✅ Funcionalidades implementadas
 
-## ✅ O que foi realizado
+- 📅 Seleção de data por meio de um calendário.
+- 🕒 Seleção de horário por meio de um relógio.
+- Exibição da data no formato **MM/aaaa** e do horário no formato **HH:mm**.
+- Exibição de `--` quando a data ou o horário não estiverem definidos.
+- Atualização independente da data e do horário de cada anotação.
+- 📝 Manutenção da criação, edição e exclusão de notas.
+- 🗺️ Preservação dos mapas e das rotas salvas anteriormente.
 
-- Criação da branch **semana8**
-- Configuração de uma chave do OpenRouteService no Cloud Firestore
-- Alteração da tela de geolocalização para selecionar ponto inicial e ponto final
-- Inclusão de marcadores diferentes para os pontos inicial e final
-- Geração de rotas utilizando o perfil `driving-car`
-- Exibição da linha da rota no mapa
-- Exibição da distância e da duração estimada do percurso
-- Inclusão da opção para inverter os pontos inicial e final
-- Salvamento dos pontos, endereços, rota, distância e duração junto com a anotação
-- Reabertura da anotação com a rota salva corretamente
-- Correção do cadastro conforme o feedback da Semana 7
-- Teste do aplicativo no emulador Pixel 7
-- Publicação da branch **semana8** no GitHub
+## 🛠️ Tecnologias utilizadas
 
-## 🚀 Tecnologias utilizadas
+- **Flutter e Dart:** interface e lógica do aplicativo.
+- **Firebase Authentication:** autenticação dos usuários.
+- **Cloud Firestore:** armazenamento das anotações.
+- **Material Design:** seletores e componentes da interface.
 
-- 🐦 Flutter
-- 🎯 Dart
-- 🔥 Firebase
-- 🔐 Firebase Authentication
-- 🗄️ Cloud Firestore
-- 🗺️ Flutter Map
-- 🌍 OpenStreetMap
-- 🧭 OpenRouteService
-- 📍 Geolocalização
-- 🔎 Geocodificação reversa com Nominatim
-- 🧩 FlutterFire CLI
-- 💻 Visual Studio Code
-- 🟢 Android Studio
-- 🌱 Git
-- 🐙 GitHub
-- 📱 Android Emulator
+## 💻 Implementação
 
-## 🧭 Configuração das rotas
+As alterações desta semana estão concentradas no arquivo `lib/notes.dart`.
 
-As rotas foram implementadas no arquivo:
+O calendário utiliza `showDatePicker`, enquanto o seletor de horário utiliza `showTimePicker`. Ao confirmar uma seleção, o documento correspondente à anotação é atualizado no Firestore. Ao cancelar, o valor anteriormente salvo é mantido.
 
-```text
-lib/maps.dart
-```
+### 💾 Armazenamento dos dados
 
-O aplicativo envia as coordenadas dos pontos inicial e final para a API do OpenRouteService utilizando o endpoint:
+| Campo | Tipo | Finalidade |
+| --- | --- | --- |
+| `date` | Timestamp ou null | Armazena a data selecionada. |
+| `timeMinutes` | Número inteiro ou null | Armazena os minutos desde meia-noite. |
+| `updatedAt` | Timestamp | Registra o momento da atualização. |
 
-```text
-https://api.openrouteservice.org/v2/directions/driving-car/geojson
-```
+Por exemplo, **14:30** corresponde a **870 minutos**, calculados por `14 × 60 + 30`.
 
-As coordenadas são enviadas no formato longitude e latitude. A resposta GeoJSON é convertida em uma linha exibida sobre o mapa.
+Embora a lista mostre apenas mês e ano, o campo `date` também mantém o dia escolhido no calendário.
 
-## 🔐 Chave do OpenRouteService
+## 🧪 Verificações realizadas
 
-Para não deixar a chave diretamente no código, ela foi cadastrada no Cloud Firestore em:
+- Análise de `lib/notes.dart` com resultado **No issues found!**.
+- Execução no emulador Pixel 7 com Android 15, API 35.
+- Criação da anotação **Teste da semana 10**.
+- Seleção e exibição de data e horário.
+- Conferência dos valores após sair e retornar à tela de notas.
+- Reabertura da rota salva na semana 8.
 
-```text
-Coleção: config
-Documento: osr
-Campo: key
-```
+## 📸 Evidências
 
-O aplicativo consulta esse campo antes de solicitar a rota.
+### 📝 Notas com data e horário
+![Notas da semana 10](imagens/semana10/notas-semana10.png)
 
-## 🔥 Dados salvos no Firebase
+### 📅 Seleção de data
+![Calendário da semana 10](imagens/semana10/calendario-semana10.png)
 
-Além da descrição da anotação, foram adicionados dados referentes à rota:
+### 🕒 Seleção de horário
+![Horário da semana 10](imagens/semana10/horario-semana10.png)
 
-```text
-initial
-final
-distanceM
-durationS
-polyline6
-mode
-```
+## ⚠️ Observações
 
-Os pontos inicial e final armazenam suas coordenadas e endereços. A linha codificada da rota permite abrir novamente o mapa sem precisar gerar a rota outra vez.
-
-## ▶️ Comandos utilizados
-
-Execução do aplicativo no emulador Pixel 7:
-
-```bash
-flutter run --no-enable-impeller -d emulator-5554
-```
-
-Publicação da branch no GitHub:
-
-```bash
-git add README.md imagens/semana8 lib/maps.dart lib/notes.dart lib/sign.dart
-git commit -m "Semana 8"
-git push -u origin semana8
-```
-
-## 📁 Arquivos alterados/criados
-
-Durante a atividade, foram utilizados principalmente os arquivos:
-
-```text
-lib/maps.dart
-lib/notes.dart
-lib/sign.dart
-README.md
-imagens/semana8/mapa-rota.png
-imagens/semana8/notas-semana8.png
-```
-
-## 📸 Evidências da execução
-
-### Rota entre dois pontos em Vitória
-
-![Rota entre dois pontos em Vitória](imagens/semana8/mapa-rota.png)
-
-### Anotação com os endereços salvos
-
-![Anotação com os endereços salvos](imagens/semana8/notas-semana8.png)
-
-## 🧪 Resultado obtido
-
-O aplicativo foi executado com sucesso no emulador **Pixel 7**, utilizando Android 15 e API 35.
-
-Após entrar no aplicativo, acessar **Notas** e abrir a tela de geolocalização, foi possível:
-
-- Selecionar o ponto inicial no mapa
-- Selecionar o ponto final no mapa
-- Consultar os endereços correspondentes
-- Gerar uma rota entre os dois pontos
-- Visualizar a rota sobre o mapa
-- Visualizar a distância de **1,30 km** e a duração estimada de **4 minutos**
-- Salvar a rota junto com a anotação
-- Reabrir a anotação e visualizar novamente a rota salva
-
-## 💬 Observações
-
-Nesta etapa foram implementados os recursos de geração e persistência de rotas. O aplicativo utiliza o OpenStreetMap para a visualização do mapa, o Nominatim para a consulta dos endereços e o OpenRouteService para calcular o percurso entre os pontos selecionados.
-
-Também foram realizados os ajustes solicitados no feedback da Semana 7 no arquivo `lib/sign.dart`, incluindo a validação de e-mail, o tratamento dos erros do Firebase Authentication e o botão **Voltar**.
+A data e o horário são informações associadas à anotação. Esta implementação **não agenda notificações ou lembretes automáticos**.
 
 ## 👨‍💻 Autor
 
-Robson Silva Ribeiro
+**Robson Silva Ribeiro**
 
 ## 🔗 Repositório
 
-[https://github.com/Robson-ifes/FirebaseApp](https://github.com/Robson-ifes/FirebaseApp)
-
-## 🌿 Branch da atividade
-
-```text
-semana8
-```
+[FirebaseApp — branch semana10](https://github.com/Robson-ifes/FirebaseApp/tree/semana10)
